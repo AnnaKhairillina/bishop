@@ -6,9 +6,14 @@ spring:
     proxy-target-class: true
   kafka:
     bootstrap-servers: localhost:9092
+  config:
+    activate:
+      on-profile: test
+  main:
+    banner-mode: "off"
 
 audit:
-  mode: console # kafka | console
+  mode: console
   kafka:
     topic: android-audit-log
 
@@ -25,17 +30,3 @@ logging:
   level:
     root: info
     com.weyland.bishop: debug
-
----
-# Тестовый профиль
-spring:
-  config:
-    activate:
-      on-profile: test
-  main:
-    banner-mode: "off"
-  kafka:
-    bootstrap-servers: mock-server
-
-audit:
-  mode: console
