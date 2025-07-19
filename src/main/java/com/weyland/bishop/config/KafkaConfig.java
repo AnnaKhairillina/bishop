@@ -1,4 +1,4 @@
-package com.weyland.bishop;
+package com.weyland.bishop.config;
 
 import java.util.HashMap;
 import java.util.Map;

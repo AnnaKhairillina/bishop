@@ -1,6 +1,9 @@
-package com.weyland.bishop;
+package com.weyland.bishop.config;
 
 import org.springframework.context.annotation.Configuration;
+
+import com.weyland.bishop.CommandService;
+import com.weyland.bishop.MetricsService;
 
 import jakarta.annotation.PostConstruct;
 

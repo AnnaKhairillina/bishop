@@ -5,6 +5,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -16,16 +17,17 @@ public class CommandService {
     private static final int MAX_QUEUE_SIZE = 100;
     private final BlockingQueue<CommandRequest> commandQueue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
     private final MetricsService metricsService;
+    private final ApplicationContext context;
 
-    public CommandService(MetricsService metricsService) {
+    public CommandService(MetricsService metricsService, ApplicationContext context) {
         this.metricsService = metricsService;
+        this.context = context;
     }
 
-    // Инициализация обработки очереди
     @PostConstruct
     public void init() {
         LOG.info("Initializing command queue processor");
-        processQueue();
+        new Thread(this::processQueue).start();
     }
 
     public void executeCommand(CommandRequest command) {
@@ -48,15 +50,12 @@ public class CommandService {
         LOG.info("COMMON command enqueued: {}", command.description());
     }
 
-    @Async
     public void processQueue() {
         LOG.info("Starting command queue processing");
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
                 CommandRequest command = commandQueue.take();
-                LOG.info("COMMON command executed: {} for author: {}", 
-                command.description(), command.author());
-                metricsService.incrementAuthorCounter(command.author());
+                context.getBean(CommandService.class).asyncProcessCommand(command);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 LOG.warn("Command queue processing interrupted");
@@ -65,7 +64,19 @@ public class CommandService {
         }
     }
 
+    @Async("taskExecutor")
+    public void asyncProcessCommand(CommandRequest command) {
+        LOG.info("COMMON command executed: {} for author: {}", 
+                command.description(), command.author());
+        metricsService.incrementAuthorCounter(command.author());
+    }
+
     public int getQueueSize() {
         return commandQueue.size();
+    }
+    
+    public void resetQueue() {
+        commandQueue.clear();
+        LOG.warn("Command queue has been reset");
     }
 }
