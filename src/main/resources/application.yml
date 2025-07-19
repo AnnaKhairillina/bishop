@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: bishop-prototype
+  aop:
+    auto: true
+    proxy-target-class: true
+  kafka:
+    bootstrap-servers: localhost:9092
+
+audit:
+  mode: console # kafka | console
+  kafka:
+    topic: android-audit-log
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    root: info
+    com.weyland.bishop: debug
+
+---
+# Тестовый профиль
+spring:
+  config:
+    activate:
+      on-profile: test
+  main:
+    banner-mode: "off"
+  kafka:
+    bootstrap-servers: mock-server
+
+audit:
+  mode: console
